@@ -1,3 +1,39 @@
+<?php
+if(isset($_POST['name']))
+{
+    $post_data = json_encode($_POST);
+
+    // Prepare new cURL resource
+    $crl = curl_init('https://ar5vimy7rb.execute-api.us-east-1.amazonaws.com/test/neworder');
+    curl_setopt($crl, CURLOPT_POST, true);
+    curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
+    curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
+
+    // Set HTTP Header for POST request 
+    curl_setopt($crl, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Accept: text/json',
+        'x-api-key: Hg4ojiEwH01ndqNOAY4BLa9lYOjYWjAn8K2zIwDe',
+    ));
+    
+    // Submit the POST request
+    $result = curl_exec($crl);
+    
+    // handle curl error
+    if ($result === false) {
+        // throw new Exception('Curl error: ' . curl_error($crl));
+        //print_r('Curl error: ' . curl_error($crl));
+        $result_noti = 0;
+    } else {
+    
+        $result_noti = 1;
+    }
+    // Close cURL session handle
+    curl_close($crl);
+    
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -33,38 +69,54 @@
         <div class="card-heading"></div>
         <div class="card-body">
           <h2 class="title">eCureHub Report Delivery</h2>
-          <form id="orderForm" method="post">
+          <?php
+          if(isset($result_noti) && $result_noti == 1)
+          {
+            ?> 
+            <h3>
+                Thank you. your order has been received. You will be contacted soon.
+            </h3>
+            <br>
+            <a class="btn btn--radius btn--green" href="/" >Go Back</a>
+
+            <?php
+          }
+          else
+          {
+            ?> 
+
+<form method="post" action="order.php">
             <div class="row row-space">
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="text" placeholder="Full Name" id="name" required>
+                  <input class="input--style-2" type="text" placeholder="Full Name" name="name" required>
                 </div>
               </div>
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="tel" placeholder="Phone Number" id="phone" required minlength="11" maxlength="11" pattern="^(?:\+88|88)?(01[3-9]\d{8})$" title="Please enter a valid 11 digit Bangladeshi phone number">
+                  <input class="input--style-2" type="tel" placeholder="Phone Number" name="phone" required minlength="11" maxlength="11" pattern="^(?:\+88|88)?(01[3-9]\d{8})$" title="Please enter a valid 11 digit Bangladeshi phone number">
                 </div>
               </div>
             </div>
             <div class="input-group">
-              <input class="input--style-2" type="text" placeholder="Address" id="address" required>
+              <input class="input--style-2" type="text" placeholder="Address" name="address" required>
             </div>
             <div class="row row-space">
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="text" placeholder="City" id="city" required>
+                  <input class="input--style-2" type="text" placeholder="City" name="city" required>
                 </div>
               </div>
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="text" placeholder="Post Code" id="postcode" required>
+                  <input class="input--style-2" type="text" placeholder="Post Code" name="postcode" required>
                 </div>
               </div>
             </div>
             <div class="row row-space">
               <div class="col-2">
                 <div class="rs-select2 js-select-simple select--no-search">
-                  <select id="lab" required>
+                  <select name="lab" required>
                     <option disabled="disabled" selected="selected">Select your Lab</option>
                     <option value="Popular diagnostic"> Popular diagnostic </option>
                     <option value="Ibn Sina Trust"> Ibn Sina Trust </option>
@@ -83,19 +135,19 @@
               </div>
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="text" placeholder="Branch of the lab " id="branch" required>
+                  <input class="input--style-2" type="text" placeholder="Branch of the lab " name="branch" required>
                 </div>
               </div>
             </div>
             <div class="row row-space">
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="text" placeholder="Lab Test ID" id="lab_id" required>
+                  <input class="input--style-2" type="text" placeholder="Lab Test ID" name="lab_id" required>
                 </div>
               </div>
               <div class="col-2">
                 <div class="input-group">
-                  <input class="input--style-2" type="number" placeholder="Due amount, if any" id="due" required value="0">
+                  <input class="input--style-2" type="number" placeholder="Due amount, if any" name="due" required value="0">
                 </div>
               </div>
             </div>
@@ -103,13 +155,13 @@
               <div class="col-2">
                 <div class="input-group">
                   <input class="input--style-2 js-datepicker" type="text" placeholder="Report Delivery Date"
-                    id="delivery_date">
+                    name="delivery_date">
                   <i class="zmdi zmdi-calendar-note input-icon js-btn-calendar"></i>
                 </div>
               </div>
               <div class="col-2">
                 <div class="rs-select2 js-select-simple select--no-search">
-                  <select id="referal">
+                  <select name="referal">
                     <option disabled="disabled" selected="selected">How did you hear about us</option>
                     <option value="Newspaper"> Newspaper </option>
                     <option value="Internet"> Internet </option>
@@ -127,6 +179,10 @@
             </div>
         </div>
         </form>
+            <?php
+          }
+          ?>
+
       </div>
     </div>
   </div>
@@ -142,45 +198,6 @@
   <!-- Main JS-->
   <script src="js/global.js"></script>
 
-  <script>
-    $(document).on('submit','#orderForm',function(event){
-      event.preventDefault();
-      
-// WARNING: For POST requests, body is set to null by browsers.
-var data = JSON.stringify({
-  "Name": $("#name").val(),
-  "Phone": $("#phone").val(),
-  "Address": $("#address").val(),
-  "City": $("#city").val(),
-  "Postcode": $("#postcode").val(),
-  "Lab": $("#lab").val(),
-  "Branch": $("#branch").val(),
-  "Lab_ID": $("#lab_id").val(),
-  "Due": $("#due").val(),
-  "Delivery_Date": $("#delivery_date").val(),
-  "referer": $("#referal").val(),
-});
-
-var xhr = new XMLHttpRequest();
-xhr.withCredentials = true;
-
-xhr.addEventListener("readystatechange", function() {
-  if(this.readyState === 4) {
-    console.log(this.responseText);
-  }
-});
-
-xhr.open("POST", "https://ar5vimy7rb.execute-api.us-east-1.amazonaws.com/test/neworder");
-xhr.setRequestHeader("Accept", "text/plain");
-xhr.setRequestHeader("x-api-key", "Hg4ojiEwH01ndqNOAY4BLa9lYOjYWjAn8K2zIwDe");
-xhr.setRequestHeader("Content-Type", "application/json");
-xhr.setRequestHeader("Access-Control-Allow-Origin", "http://frontend.test");
-
-xhr.send(data);
-
-  });
-
-  </script>
 </body><!-- This templates was made by Colorlib (https://colorlib.com) -->
 
 </html>
